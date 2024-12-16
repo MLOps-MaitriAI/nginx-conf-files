@@ -37,14 +37,14 @@ http {
 
         listen 80;
         server_name api.maitriai.com;
-        
+
         # Redirect HTTP to HTTPS
         return 301 https://$host$request_uri;
-        
+
         location /.well-known/acme-challenge/ {
             root /var/www/html;
         }
-    
+
 
 }
 
@@ -98,8 +98,81 @@ http {
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
         }
-        
-       
+
+         location /ai_hr {
+        root /var/www/html;
+        try_files $uri /ai_hr/index.html;
+    }
+
+    location /static/ {
+        alias /var/www/html/ai_hr/static/;
+        try_files $uri $uri/ =404;
+    }
+
+    location ~* \.(png|jpg|jpeg|gif|ico)$ {
+        root /var/www/html/ai_hr;
+        access_log off;
+        expires max;
+        try_files $uri =404;
+    }
+
+    location /manifest.json {
+        root /var/www/html/ai_hr;
+        try_files $uri =404;
+    }
+
+    location /asset-manifest.json {
+        root /var/www/html/ai_hr;
+        try_files $uri =404;
+    }
+
+
+
+
+          location /smart_hr/ {
+       proxy_pass http://127.0.0.1:8002/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+        send_timeout 300s;
+    }
+
+    location /smart_hr/docs {
+        proxy_pass http://127.0.0.1:8002/docs;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+        send_timeout 300s;
+    }
+
+    location /smart_hr/openapi.json {
+        proxy_pass http://127.0.0.1:8002/openapi.json;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+        send_timeout 300s;
+    }
+
+
+
             location /MBInfra/ {
         proxy_pass http://127.0.0.1:8000/;
         proxy_http_version 1.1;
@@ -166,7 +239,7 @@ location @proxy_static {
     proxy_send_timeout 300s;
     proxy_read_timeout 300s;
     send_timeout 300s;
-}    
+}
 
         # Streamlit app on port 8504
         location /ilate_chatbot/ {
@@ -182,7 +255,7 @@ location @proxy_static {
             proxy_set_header Connection "upgrade";
         }
 
-        
+
         # Streamlit app on port 8505
         location /ai_doctor/ {
             proxy_pass http://127.0.0.1:8505/;
@@ -198,7 +271,7 @@ location @proxy_static {
         }
 
 
-          
+
     location /maitriai_chatbot/ {
         proxy_pass http://127.0.0.1:8001/;
         proxy_http_version 1.1;
@@ -255,7 +328,7 @@ location @proxy_static {
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
         }
-     
+
         # Static files (adjust the path as needed)
         # location /static/ {
         #     alias /path/to/static/files;
@@ -264,7 +337,7 @@ location @proxy_static {
         # Custom error pages
         error_page 404 /404.html;
         error_page 500 503 504 /50x.html;
-    
+
 
 }
 }
