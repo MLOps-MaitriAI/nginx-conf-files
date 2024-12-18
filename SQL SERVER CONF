@@ -37,14 +37,14 @@ http {
 
         listen 80;
         server_name api.maitriai.com;
-
+        
         # Redirect HTTP to HTTPS
         return 301 https://$host$request_uri;
-
+        
         location /.well-known/acme-challenge/ {
             root /var/www/html;
         }
-
+    
 
 }
 
@@ -126,9 +126,9 @@ http {
         try_files $uri =404;
     }
 
-
-
-
+ 
+        
+        
           location /smart_hr/ {
        proxy_pass http://127.0.0.1:8002/;
         proxy_http_version 1.1;
@@ -171,8 +171,8 @@ http {
         send_timeout 300s;
     }
 
-
-
+       
+           
             location /MBInfra/ {
         proxy_pass http://127.0.0.1:8000/;
         proxy_http_version 1.1;
@@ -239,7 +239,7 @@ location @proxy_static {
     proxy_send_timeout 300s;
     proxy_read_timeout 300s;
     send_timeout 300s;
-}
+}    
 
         # Streamlit app on port 8504
         location /ilate_chatbot/ {
@@ -255,7 +255,7 @@ location @proxy_static {
             proxy_set_header Connection "upgrade";
         }
 
-
+        
         # Streamlit app on port 8505
         location /ai_doctor/ {
             proxy_pass http://127.0.0.1:8505/;
@@ -271,7 +271,7 @@ location @proxy_static {
         }
 
 
-
+          
     location /maitriai_chatbot/ {
         proxy_pass http://127.0.0.1:8001/;
         proxy_http_version 1.1;
@@ -328,7 +328,7 @@ location @proxy_static {
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
         }
-
+     
         # Static files (adjust the path as needed)
         # location /static/ {
         #     alias /path/to/static/files;
@@ -337,7 +337,9 @@ location @proxy_static {
         # Custom error pages
         error_page 404 /404.html;
         error_page 500 503 504 /50x.html;
-
+    
 
 }
 }
+
+
