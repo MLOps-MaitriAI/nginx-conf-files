@@ -110,12 +110,18 @@ http {
     }
 
     location ~* \.(png|jpg|jpeg|gif|ico)$ {
-        root /var/www/html/ai_hr;
-        access_log off;
-        expires max;
-        try_files $uri =404;
+    root /var/www/html;
+    access_log off;
+    expires max;
+    try_files $uri $uri/ @secondary;
     }
 
+# Secondary attempt for images in ai_hr directory
+    location @secondary {
+    root /var/www/html/ai_hr;
+    try_files $uri =404;
+    }
+     
     location /manifest.json {
         root /var/www/html/ai_hr;
         try_files $uri =404;
@@ -341,5 +347,4 @@ location @proxy_static {
 
 }
 }
-
 
