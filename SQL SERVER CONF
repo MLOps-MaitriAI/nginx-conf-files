@@ -100,57 +100,95 @@ http {
         }
 
          location /ai_hr {
-        root /var/www/html;
-        try_files $uri /ai_hr/index.html;
-    }
+    root /var/www/html;
+    try_files $uri /ai_hr/index.html;
+}
 
-    location /static/ {
-        alias /var/www/html/ai_hr/static/;
-        try_files $uri $uri/ =404;
-    }
+location /static/ {
+    alias /var/www/html/ai_hr/static/;
+    try_files $uri $uri/ =404;
+}
 
-    location ~* \.(png|jpg|jpeg|mp4|gif|ico)$ {
+# Optimized media file handling
+location ~* \.(png|jpg|jpeg|mp4|gif|ico)$ {
     root /var/www/html;
     access_log off;
     expires max;
+    
+    # Buffer size optimization for videos
+    proxy_buffering on;
+    proxy_buffer_size 128k;
+    proxy_buffers 100 128k;
+    proxy_busy_buffers_size 256k;
+    
+    # Enable sendfile for better performance
+    sendfile on;
+    sendfile_max_chunk 512k;
+    
+    # TCP optimization
+    tcp_nopush on;
+    tcp_nodelay on;
+    
+    # Cache control headers
+    add_header Cache-Control "public, no-transform";
+    
+    # CORS headers for video streaming
+    add_header 'Access-Control-Allow-Origin' '*';
+    add_header 'Access-Control-Allow-Methods' 'GET, OPTIONS';
+    
+    # Adjust client body and timeout settings
+    client_max_body_size 100M;
+    client_body_buffer_size 128k;
+    
     try_files $uri $uri/ @secondary;
-    }
+}
 
 # Secondary attempt for images in ai_hr directory
-    location @secondary {
+location @secondary {
     root /var/www/html/ai_hr;
     try_files $uri =404;
-    }
+}
+
+location /manifest.json {
+    root /var/www/html/ai_hr;
+    try_files $uri =404;
+}
+
+location /asset-manifest.json {
+    root /var/www/html/ai_hr;
+    try_files $uri =404;
+}
+
+location /smart_hr/ {
+    proxy_pass http://127.0.0.1:8002/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_cache_bypass $http_upgrade;
+    
+    # Enhanced proxy buffering for streaming
+    proxy_buffering on;
+    proxy_buffer_size 128k;
+    proxy_buffers 100 128k;
+    proxy_busy_buffers_size 256k;
+    
+    # Increased timeouts for long connections
+    proxy_connect_timeout 300s;
+    proxy_send_timeout 300s;
+    proxy_read_timeout 300s;
+    send_timeout 300s;
+    
+    # Enable gzip compression
+    gzip on;
+    gzip_min_length 1000;
+    gzip_proxied any;
+    gzip_types application/json application/xml application/javascript text/css;
+}
      
-    location /manifest.json {
-        root /var/www/html/ai_hr;
-        try_files $uri =404;
-    }
-
-    location /asset-manifest.json {
-        root /var/www/html/ai_hr;
-        try_files $uri =404;
-    }
-
- 
-        
-        
-          location /smart_hr/ {
-       proxy_pass http://127.0.0.1:8002/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        proxy_connect_timeout 300s;
-        proxy_send_timeout 300s;
-        proxy_read_timeout 300s;
-        send_timeout 300s;
-    }
-
     location /smart_hr/docs {
         proxy_pass http://127.0.0.1:8002/docs;
         proxy_set_header Host $host;
@@ -347,3 +385,4 @@ location @proxy_static {
 
 }
 }
+
